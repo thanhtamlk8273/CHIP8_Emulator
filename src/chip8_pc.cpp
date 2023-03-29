@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <chrono>
 #include <type_traits>
-#include <optional>
+#include <stdexcept>
 
 #include <fmt/core.h>
 
@@ -86,7 +86,7 @@ namespace {
     };
 
     template<typename T>
-    std::optional<T> extractSubsequence(T value, size_t start, size_t len) {
+    T extractSubsequence(T value, size_t start, size_t len) {
         static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value,
                       "Integral required");
         auto isInBounds = [](size_t value, size_t lower_bound, size_t upper_bound) {
@@ -95,7 +95,9 @@ namespace {
 
         size_t max_len = sizeof(T) * 2;
         size_t end = start + len - 1;
-        if(!isInBounds(start, 0, max_len) || !isInBounds(end, 0, max_len)) return {};
+        if(!isInBounds(start, 0, max_len) || !isInBounds(end, 0, max_len)) {
+            throw std::invalid_argument("extractSubsequence : out of bound");
+        }
 
         size_t left_shift = (start * number_of_bits<Byte_t>::value / 2);
         size_t right_shift = (max_len - 1 - end) * number_of_bits<Byte_t>::value / 2;
@@ -145,7 +147,6 @@ void CHIP8_PC::process()
 
     program_counter += 2;
 
-    unsigned char instruction_id = opcode >> 12;
     if(opcode == 0x0000)
     {
     }
@@ -155,88 +156,88 @@ void CHIP8_PC::process()
     else if(opcode == 0x00EE) {
         perform00EE(opcode);
     }
-    else if(instruction_id == 0x1) {
+    else if((opcode & 0xF000) == 0x1000) {
         perform1nnn(opcode);
     }
-    else if(instruction_id == 0x2)
+    else if((opcode & 0xF000) == 0x2000)
     {
         perform2nnn(opcode);
     }
-    else if(instruction_id == 0x3) {
+    else if((opcode & 0xF000) == 0x3000) {
         perform3xkk(opcode);
     }
-    else if(instruction_id == 0x4) {
+    else if((opcode & 0xF000) == 0x4000) {
         perform4xkk(opcode);
     }
-    else if(instruction_id == 0x5) {
+    else if((opcode & 0xF000) == 0x5000) {
         perform5xy0(opcode);
     }
-    else if(instruction_id == 0x6) {
+    else if((opcode & 0xF000) == 0x6000) {
         perform6xkk(opcode);
     }
-    else if(instruction_id == 0x7) {
+    else if((opcode & 0xF000) == 0x7000) {
         perform7xkk(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x0)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x0)
     {
         perform8xy0(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x1)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x1)
     {
         perform8xy1(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x2)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x2)
     {
         perform8xy2(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x3)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x3)
     {
         perform8xy3(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x4)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x4)
     {
         perform8xy4(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x5)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x5)
     {
         perform8xy5(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0x6)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0x6)
     {
         perform8xy6(opcode);
     }
-    else if(instruction_id == 0x8 && (opcode & 0x0F) == 0xE)
+    else if((opcode & 0xF000) == 0x8000 && (opcode & 0x000F) == 0xE)
     {
         perform8xyE(opcode);
     }
-    else if(instruction_id == 0x9)
+    else if((opcode & 0xF000) == 0x9000)
     {
         perform9xy0(opcode);
     }
-    else if(instruction_id == 0xa) {
+    else if((opcode & 0xF000) == 0xa000) {
         performAnnn(opcode);
     }
-    else if(instruction_id == 0xb) {
+    else if((opcode & 0xF000) == 0xb000) {
         performBnnn(opcode);
     }
-    else if(instruction_id == 0xc) {
+    else if((opcode & 0xF000) == 0xc000) {
         performCxkk(opcode);
     }
-    else if(instruction_id == 0xd) {
+    else if((opcode & 0xF000) == 0xd000) {
         performDxyn(opcode);
     }
-    else if(instruction_id == 0xF && (opcode & 0xFF) == 0x1E)
+    else if((opcode & 0xF000) == 0xF000 && (opcode & 0xFF) == 0x1E)
     {
         performFx1E(opcode);
     }
-    else if(instruction_id == 0xF && (opcode & 0xFF) == 0x33) {
+    else if((opcode & 0xF000) == 0xF000 && (opcode & 0xFF) == 0x33) {
         performFx33(opcode);
     }
-    else if(instruction_id == 0xF && (opcode & 0xFF) == 0x55)
+    else if((opcode & 0xF000) == 0xF000 && (opcode & 0xFF) == 0x55)
     {
         performFx55(opcode);
     }
-    else if(instruction_id == 0xF && (opcode & 0xFF) == 0x65)
+    else if((opcode & 0xF000) == 0xF000 && (opcode & 0xFF) == 0x65)
     {
         performFx65(opcode);
     }
@@ -299,33 +300,29 @@ void CHIP8_PC::perform6xkk(DByte_t opcode)
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
     auto new_value = extractSubsequence(opcode, 2, 2);
-    if(register_id.has_value() && new_value.has_value()) {
-        setVRegister(register_id.value(), new_value.value());
-    }
+    setVRegister(register_id, new_value);
 
-    fmt::print("Set V{:02d} to {:#04x}\n", register_id.value(), new_value.value());
+    fmt::print("Set V{:02d} to {:#04x}\n", register_id, new_value);
 }
 
 void CHIP8_PC::performAnnn(DByte_t opcode)
 {
     printOpcode(opcode);
     auto new_value = extractSubsequence(opcode, 1, 3);
-    if(new_value.has_value()) {
-        index_register = new_value.value();
-        emit indexRegisterChanged(static_cast<int>(index_register));
-    }
 
-    fmt::print("Set index register to {:#04x}\n", new_value.value());
+    index_register = new_value;
+    emit indexRegisterChanged(static_cast<int>(index_register));
+
+    fmt::print("Set index register to {:#04x}\n", new_value);
 }
 
 void CHIP8_PC::performBnnn(DByte_t opcode)
 {
     printOpcode(opcode);
     auto new_value = extractSubsequence(opcode, 1, 3);
-    if(new_value.has_value()) {
-        program_counter = new_value.value();
-        program_counter += readVRegister(0x0);
-    }
+
+    program_counter = new_value;
+    program_counter += readVRegister(0x0);
 
     fmt::print("Set program counter to {:#06x}", program_counter);
 }
@@ -335,12 +332,11 @@ void CHIP8_PC::performCxkk(DByte_t opcode)
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
     auto new_value = extractSubsequence(opcode, 2, 2);
-    if(register_id.has_value() && new_value.has_value()) {
-        Byte_t random_value = rand();
-        setVRegister(register_id.value(), random_value & new_value.value());
-    }
 
-    fmt::print("Set V{:02d} to {:#04x}\n", register_id.value(), readVRegister(register_id.value()));
+    Byte_t random_value = rand();
+    setVRegister(register_id, random_value & new_value);
+
+    fmt::print("Set V{:02d} to {:#04x}\n", register_id, readVRegister(register_id));
 }
 
 void CHIP8_PC::perform3xkk(DByte_t opcode)
@@ -348,14 +344,12 @@ void CHIP8_PC::perform3xkk(DByte_t opcode)
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
     auto value = extractSubsequence(opcode, 2, 2);
-    if(register_id.has_value() && value.has_value()) {
-        if(readVRegister(register_id.value()) == value.value()) {
-            program_counter += 2;
-            fmt::print("Skip next instruction\n");
-        }
-        else {
-            fmt::print("Do not skip next instruction\n");
-        }
+    if(readVRegister(register_id) == value) {
+        program_counter += 2;
+        fmt::print("Skip next instruction\n");
+    }
+    else {
+        fmt::print("Do not skip next instruction\n");
     }
 }
 
@@ -364,14 +358,12 @@ void CHIP8_PC::perform4xkk(DByte_t opcode)
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
     auto value = extractSubsequence(opcode, 2, 2);
-    if(register_id.has_value() && value.has_value()) {
-        if(readVRegister(register_id.value()) != value.value()) {
-            program_counter += 2;
-            fmt::print("Skip next instruction\n");
-        }
-        else {
-            fmt::print("Do not skip next instruction\n");
-        }
+    if(readVRegister(register_id) != value) {
+        program_counter += 2;
+        fmt::print("Skip next instruction\n");
+    }
+    else {
+        fmt::print("Do not skip next instruction\n");
     }
 }
 
@@ -380,15 +372,13 @@ void CHIP8_PC::perform5xy0(DByte_t opcode)
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(vx_id.has_value() && vy_id.has_value()) {
-        if(readVRegister(vx_id.value()) == readVRegister(vy_id.value()))
-        {
-            program_counter += 2;
-            fmt::print("Skip next instruction\n");
-        }
-        else {
-            fmt::print("Do not skip next instruction\n");
-        }
+    if(readVRegister(vx_id) == readVRegister(vy_id))
+    {
+        program_counter += 2;
+        fmt::print("Skip next instruction\n");
+    }
+    else {
+        fmt::print("Do not skip next instruction\n");
     }
 }
 
@@ -399,14 +389,9 @@ void CHIP8_PC::performDxyn(DByte_t opcode)
     auto vy_id = extractSubsequence(opcode, 2, 1);
     auto n_op = extractSubsequence(opcode, 3, 1);
 
-    if(!vy_id.has_value() || !vy_id.has_value() || !n_op.has_value()) {
-        std::cout << "Unable to extract vx, vy and n from opcode\n";
-        return;
-    }
-
-    int x = readVRegister(vx_id.value()) % 64;
-    int y = readVRegister(vy_id.value()) % 32;
-    int n = n_op.value();
+    int x = readVRegister(vx_id) % 64;
+    int y = readVRegister(vy_id) % 32;
+    int n = n_op;
 
     fmt::print("Draw at coordinate x: {}, y: {}, {} bytes\n", x, y, n);
 
@@ -441,21 +426,17 @@ void CHIP8_PC::perform7xkk(DByte_t opcode)
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
     auto value = extractSubsequence(opcode, 2, 2);
-    if(register_id.has_value() && value.has_value()) {
-        setVRegister(register_id.value(),
-                     readVRegister(register_id.value()) + value.value());
-    }
-    fmt::print("Add {:#04x} to V{}\n", value.value(), register_id.value());
+    setVRegister(register_id,
+                 readVRegister(register_id) + value);
+    fmt::print("Add {:#04x} to V{}\n", value, register_id);
 }
 
 void CHIP8_PC::perform1nnn(DByte_t opcode)
 {
     printOpcode(opcode);
     auto value = extractSubsequence(opcode, 1, 3);
-    if(value.has_value()) {
-        program_counter = value.value();
-    }
-    fmt::print("Jump to {:#04x}\n", value.value());
+    program_counter = value;
+    fmt::print("Jump to {:#04x}\n", value);
 }
 
 void CHIP8_PC::perform8xy0(DByte_t opcode)
@@ -463,10 +444,8 @@ void CHIP8_PC::perform8xy0(DByte_t opcode)
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(vx_id.has_value() && vy_id.has_value()) {
-       setVRegister(vx_id.value(), readVRegister(vy_id.value()));
-    }
-    fmt::print("Set V{} to the value of V{}\n", vx_id.value(), vy_id.value());
+    setVRegister(vx_id, readVRegister(vy_id));
+    fmt::print("Set V{} to the value of V{}\n", vx_id, vy_id);
 }
 
 void CHIP8_PC::perform8xy1(DByte_t opcode)
@@ -474,11 +453,9 @@ void CHIP8_PC::perform8xy1(DByte_t opcode)
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(vx_id.has_value() && vy_id.has_value()) {
-        setVRegister(vx_id.value(),
-                     readVRegister(vx_id.value()) | readVRegister(vy_id.value()));
-    }
-    fmt::print("Set V{} to V{} | V{}\n", vx_id.value(), vx_id.value(), vy_id.value());
+    setVRegister(vx_id,
+                 readVRegister(vx_id) | readVRegister(vy_id));
+    fmt::print("Set V{} to V{} | V{}\n", vx_id, vx_id, vy_id);
 }
 
 void CHIP8_PC::perform8xy2(DByte_t opcode)
@@ -486,11 +463,9 @@ void CHIP8_PC::perform8xy2(DByte_t opcode)
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(vx_id.has_value() && vy_id.has_value()) {
-        setVRegister(vx_id.value(),
-                     readVRegister(vx_id.value()) & readVRegister(vy_id.value()));
-    }
-    fmt::print("Set V{} to V{} & V{}\n", vx_id.value(), vx_id.value(), vy_id.value());
+    setVRegister(vx_id,
+                 readVRegister(vx_id) & readVRegister(vy_id));
+    fmt::print("Set V{} to V{} & V{}\n", vx_id, vx_id, vy_id);
 }
 
 void CHIP8_PC::perform8xy3(DByte_t opcode)
@@ -498,11 +473,9 @@ void CHIP8_PC::perform8xy3(DByte_t opcode)
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(vx_id.has_value() && vy_id.has_value()) {
-        setVRegister(vx_id.value(),
-                     readVRegister(vx_id.value()) ^ readVRegister(vy_id.value()));
-    }
-    fmt::print("Set V{} to V{} ^ V{}\n", vx_id.value(), vx_id.value(), vy_id.value());
+    setVRegister(vx_id,
+                 readVRegister(vx_id) ^ readVRegister(vy_id));
+    fmt::print("Set V{} to V{} ^ V{}\n", vx_id, vx_id, vy_id);
 }
 
 void CHIP8_PC::perform8xy4(DByte_t opcode)
@@ -511,14 +484,13 @@ void CHIP8_PC::perform8xy4(DByte_t opcode)
 
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(!vx_id.has_value() || !vy_id.has_value()) return;
 
-    DByte_t result = readVRegister(vx_id.value()) + readVRegister(vy_id.value());
+    DByte_t result = readVRegister(vx_id) + readVRegister(vy_id);
     if(result > 0xFF)
         setVRegister(0xF, 1);
     else
         setVRegister(0xF, 0);
-    setVRegister(vx_id.value(), static_cast<Byte_t>(result));
+    setVRegister(vx_id, static_cast<Byte_t>(result));
 }
 
 void CHIP8_PC::perform8xy5(DByte_t opcode)
@@ -527,12 +499,11 @@ void CHIP8_PC::perform8xy5(DByte_t opcode)
 
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
-    if(!vx_id.has_value() || !vy_id.has_value()) return;
 
-    Byte_t vx_value = readVRegister(vx_id.value());
-    Byte_t vy_value = readVRegister(vy_id.value());
+    Byte_t vx_value = readVRegister(vx_id);
+    Byte_t vy_value = readVRegister(vy_id);
 
-    setVRegister(vx_id.value(), vx_value - vy_value);
+    setVRegister(vx_id, vx_value - vy_value);
     if(vx_value < vy_value)
         setVRegister(0xF, 0x0);
     else
@@ -543,20 +514,16 @@ void CHIP8_PC::perform8xy6(DByte_t opcode)
 {
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
-    if(vx_id.has_value()) {
-        setVRegister(0xF, readVRegister(vx_id.value()) & 0x1);
-        setVRegister(vx_id.value(), readVRegister(vx_id.value()) >> 1);
-    }
+    setVRegister(0xF, readVRegister(vx_id) & 0x1);
+    setVRegister(vx_id, readVRegister(vx_id) >> 1);
 }
 
 void CHIP8_PC::perform8xyE(DByte_t opcode)
 {
     printOpcode(opcode);
     auto vx_id = extractSubsequence(opcode, 1, 1);
-    if(vx_id.has_value()) {
-        setVRegister(0xF, (readVRegister(vx_id.value()) & 0x80) >> 7);
-        setVRegister(vx_id.value(), readVRegister(vx_id.value()) << 1);
-    }
+        setVRegister(0xF, (readVRegister(vx_id) & 0x80) >> 7);
+        setVRegister(vx_id, readVRegister(vx_id) << 1);
 }
 
 void CHIP8_PC::perform9xy0(DByte_t opcode)
@@ -565,15 +532,13 @@ void CHIP8_PC::perform9xy0(DByte_t opcode)
     auto vx_id = extractSubsequence(opcode, 1, 1);
     auto vy_id = extractSubsequence(opcode, 2, 1);
 
-    if(vx_id.has_value() && vy_id.has_value()) {
-        if(readVRegister(vx_id.value()) != readVRegister(vy_id.value())) {
+        if(readVRegister(vx_id) != readVRegister(vy_id)) {
             program_counter += 2;
             fmt::print("Skip the next instruction\n");
         }
         else {
             fmt::print("Do not skip the next instruction\n");
         }
-    }
 }
 
 void CHIP8_PC::perform2nnn(DByte_t opcode)
@@ -594,20 +559,18 @@ void CHIP8_PC::performFx1E(DByte_t opcode)
 {
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
-    if(register_id.has_value()) {
-        index_register += v_registers.at(register_id.value());
+        index_register += v_registers.at(register_id);
         emit indexRegisterChanged(static_cast<int>(index_register));
-    }
+
 }
 
 void CHIP8_PC::performFx33(DByte_t opcode)
 {
     printOpcode(opcode);
     auto register_id = extractSubsequence(opcode, 1, 1);
-    if(!register_id.has_value()) return;
 
-    fmt::print("Convert {} to BCF format\n", readVRegister(register_id.value()));
-    auto num_in_bcd = convertToBcd(readVRegister(register_id.value()));
+    fmt::print("Convert {} to BCF format\n", readVRegister(register_id));
+    auto num_in_bcd = convertToBcd(readVRegister(register_id));
 
     for(int i = 0; i < 3; ++i)
     {
@@ -621,11 +584,8 @@ void CHIP8_PC::performFx55(DByte_t opcode)
     printOpcode(opcode);
 
     auto upper_register_id = extractSubsequence(opcode, 1, 1);
-    if(!upper_register_id.has_value()) {
-        return;
-    }
 
-    for(int i = 0; i <= upper_register_id.value(); ++i)
+    for(int i = 0; i <= upper_register_id; ++i)
     {
         ram.at(index_register + i) = readVRegister(i);
     }
@@ -638,11 +598,8 @@ void CHIP8_PC::performFx65(DByte_t opcode)
     printOpcode(opcode);
 
     auto upper_register_id = extractSubsequence(opcode, 1, 1);
-    if(!upper_register_id.has_value()) {
-        return;
-    }
 
-    for(int i = 0; i <= upper_register_id.value(); ++i)
+    for(int i = 0; i <= upper_register_id; ++i)
     {
         setVRegister(i, ram.at(index_register + i));
     }
