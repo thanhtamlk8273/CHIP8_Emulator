@@ -52,7 +52,7 @@ add_executable(CHIP8Emu ${SRCS})
 target_link_libraries(CHIP8Emu PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
 target_link_libraries(CHIP8Emu PRIVATE gtest gmock gtest_main)
 target_link_libraries(CHIP8Emu PRIVATE fmt::fmt)
-target_compile_options(CHIP8Emu PRIVATE -Wall -g -O0)
+target_compile_options(CHIP8Emu PRIVATE -Wall -g -O2)
 target_compile_options(CHIP8Emu PRIVATE ${ASAN_COMPILE_OPTIONS})
 target_link_options(CHIP8Emu PRIVATE ${ASAN_LINKER_OPTIONS})
 

@@ -13,6 +13,14 @@ public:
 public slots:
     void update(uint8_t* frame_buffer);
 
+protected:
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+
+signals:
+    void signalKeyReleaseEvent(int released_key);
+    void signalKeyPressEvent(int pressed_key);
+
 private:
     /* Graphics */
     const unsigned graphics_width;

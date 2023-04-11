@@ -8,6 +8,9 @@
 #include <QGraphicsView>
 #include <QByteArray>
 #include <QTimer>
+#include <chrono>
+#include <ratio>
+#include <vector>
 
 #include <gtest/gtest_prod.h>
 
@@ -44,20 +47,30 @@ private:
     void perform8xy4(DByte_t opcode);
     void perform8xy5(DByte_t opcode);
     void perform8xy6(DByte_t opcode);
+    void perform8xy7(DByte_t opcode);
     void perform8xyE(DByte_t opcode);
     void perform9xy0(DByte_t opcode);
     void performAnnn(DByte_t opcode);
     void performBnnn(DByte_t opcode);
     void performCxkk(DByte_t opcode);
     void performDxyn(DByte_t opcode);
+    void performEx9e(DByte_t opcode);
+    void performExa1(DByte_t opcode);
+    void performFx07(DByte_t opcode);
+    void performFx0A(DByte_t opcode);
+    void performFx15(DByte_t opcode);
     void performFx1E(DByte_t opcode);
+    void performFx29(DByte_t opcode);
     void performFx33(DByte_t opcode);
     void performFx55(DByte_t opcode);
     void performFx65(DByte_t opcode);
     /* frame_buffer method */
     void clearFrameBuffer();
-    void sendSignalToMonitor();
-    /* Testing methods */
+
+    enum class CheckPeriod { Yes, No };
+    void sendSignalToMonitor(CheckPeriod check_period = CheckPeriod::Yes);
+
+    bool isCpuRunning();
 
 signals:
     void frameBufferChanged(uint8_t* buffer);
@@ -68,8 +81,10 @@ signals:
 
 public slots:
     void load();
-    void startCPU();
-    void stopCPU();
+    void startCpu();
+    void stopCpu();
+    void receiveKeyPressEvent(int pressed_key);
+    void receiveKeyReleaseEvent(int pressed_key);
 
 private slots:
     void process();
@@ -77,6 +92,10 @@ private slots:
 private:
     /* Timers */
     QTimer* main_process_timer;
+    std::chrono::time_point<std::chrono::high_resolution_clock> last_time;
+
+    /* Chip-8 timers */
+    DByte_t delay_timer;
 
     /* 8-bit registes V0-VF */
     const unsigned number_of_8bit_registers = 16;
@@ -88,17 +107,26 @@ private:
     Byte_t stack_pointer;
 
     /* Memory */
-    const unsigned ram_size = 4096;
+    static const unsigned ram_size = 4096;
     std::vector<Byte_t> ram;
     void setVRegister(int i, Byte_t value);
     Byte_t readVRegister(int i);
 
     /* Graphics */
-    const unsigned graphics_width = 64;
-    const unsigned graphics_height = 32;
+    static const unsigned graphics_width = 64;
+    static const unsigned graphics_height = 32;
 
     /* Framebuffer */
-    std::vector<Byte_t> frame_buffer;
+    Byte_t frame_buffer[graphics_height][graphics_width / 8];
+
+    /* Others */
+    const std::vector<int> interested_keys{
+                                     Qt::Key_0, Qt::Key_1, Qt::Key_2, Qt::Key_3,
+                                     Qt::Key_4, Qt::Key_5, Qt::Key_6, Qt::Key_7,
+                                     Qt::Key_8, Qt::Key_9, Qt::Key_A, Qt::Key_B,
+                                     Qt::Key_C, Qt::Key_D, Qt::Key_E, Qt::Key_F};
+    int last_active_key;
+    std::vector<int> interested_keys_statuses;
 };
 
 #endif // CHIP8_PC_H

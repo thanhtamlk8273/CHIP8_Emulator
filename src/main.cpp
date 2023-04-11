@@ -86,9 +86,11 @@ int main(int argc, char* argv[])
 
     /* Signals and slots */
     QObject::connect(&pc, &CHIP8_PC::frameBufferChanged, &monitor, &Monitor::update);
+    QObject::connect(&monitor, &Monitor::signalKeyPressEvent, &pc, &CHIP8_PC::receiveKeyPressEvent);
+    QObject::connect(&monitor, &Monitor::signalKeyReleaseEvent, &pc, &CHIP8_PC::receiveKeyReleaseEvent);
     QObject::connect(&load_button, &QPushButton::released, &pc, &CHIP8_PC::load);
-    QObject::connect(&start_button, &QPushButton::released, &pc, &CHIP8_PC::startCPU);
-    QObject::connect(&stop_button, &QPushButton::released, &pc, &CHIP8_PC::stopCPU);
+    QObject::connect(&start_button, &QPushButton::released, &pc, &CHIP8_PC::startCpu);
+    QObject::connect(&stop_button, &QPushButton::released, &pc, &CHIP8_PC::stopCpu);
     QObject::connect(&pc, &CHIP8_PC::indexRegisterChanged, &index_register_display, &NumberDisplay::updateValue);
     QObject::connect(&pc, &CHIP8_PC::currentOpcodeChanged, &current_opcode_display, &NumberDisplay::updateValue);
     QObject::connect(&pc, &CHIP8_PC::programCounterChanged, &program_counter_display, &NumberDisplay::updateValue);
