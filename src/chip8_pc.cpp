@@ -98,7 +98,6 @@ namespace {
       */
     void printOpcode(DByte_t opcode)
     {
-        //std::cout << "opcode x" << std::hex << std::setfill('0') << std::setw(4) << (int) opcode << '\n';
         LOG("Executing {:#06x}: ", opcode);
     }
 
@@ -130,15 +129,12 @@ namespace {
         static constexpr size_t value = sizeof(T) * 8;
     };
 
-    template<typename T>
-    T extractSubsequence(T value, size_t start, size_t len) {
-        static_assert(std::is_integral<T>::value && std::is_unsigned<T>::value,
-                      "Integral required");
+    DByte_t extractSubsequence(DByte_t value, size_t start, size_t len) {
         auto isInBounds = [](size_t value, size_t lower_bound, size_t upper_bound) {
             return value >= lower_bound && value < upper_bound;
         };
 
-        size_t max_len = sizeof(T) * 2;
+        size_t max_len = sizeof(DByte_t) * 2;
         size_t end = start + len - 1;
         if(!isInBounds(start, 0, max_len) || !isInBounds(end, 0, max_len)) {
             throw std::invalid_argument("extractSubsequence : out of bound");
@@ -147,7 +143,7 @@ namespace {
         size_t left_shift = (start * number_of_bits<Byte_t>::value / 2);
         size_t right_shift = (max_len - 1 - end) * number_of_bits<Byte_t>::value / 2;
 
-        value &= (static_cast<T>(~0) >> left_shift);
+        value &= (static_cast<DByte_t>(~0) >> left_shift);
         value >>= right_shift;
         return value;
     }
